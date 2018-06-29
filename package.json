@@ -1,0 +1,92 @@
+{
+    "name": "ts-stopwatch",
+    "version": "0.0.1",
+    "description": "Stopwatch timer utility written in TypeScript",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/UselessPickles/ts-stopwatch.git"
+    },
+    "homepage": "https://github.com/UselessPickles/ts-stopwatch",
+    "bugs": {
+        "url": "https://github.com/UselessPickles/ts-stopwatch/issues"
+    },
+    "files": [
+        "dist",
+        "src"
+    ],
+    "main": "dist/commonjs/index.js",
+    "jsnext:main": "dist/es/index.js",
+    "module": "dist/es/index.js",
+    "types": "dist/types/index.d.ts",
+    "scripts": {
+        "clean:dist": "rimraf dist",
+        "clean:coverage": "rimraf coverage",
+        "clean:pack": "rimraf ts-stopwatch-*.tgz",
+        "compile": "tsc --project tsconfig.json --noEmit --pretty --noErrorTruncation",
+        "lint": "tslint --config tslint.json --project tsconfig.json",
+        "lint:fix": "npm run lint -- --fix",
+        "prettier:test": "prettier --list-different \"{src,tests,type_tests}/**/*.ts\"",
+        "prettier:fix": "prettier --write \"{src,tests,type_tests}/**/*.ts\"",
+        "build:types": "tsc --project src/tsconfig.json --pretty --noErrorTruncation --emitDeclarationOnly true --declarationMap true --outDir dist/types",
+        "build:commonjs": "tsc --project src/tsconfig.json --pretty --noErrorTruncation --declaration false --outDir dist/commonjs",
+        "build:es": "tsc --project src/tsconfig.json --pretty --noErrorTruncation --declaration false -m es6 --outDir dist/es",
+        "build": "npm run clean:dist && run-p build:types build:es build:commonjs",
+        "pack": "run-p clean:pack build && npm pack",
+        "jest": "jest",
+        "jest:coverage": "npm run clean:coverage && jest --coverage",
+        "dtslint:v2_0_plus": "dtslint type_tests",
+        "dtslint": "run-s clean:dist build:types dtslint:v2_0_plus",
+        "test": "run-s compile prettier:test lint dtslint jest",
+        "test:coverage": "run-s compile prettier:test lint dtslint jest:coverage",
+        "build:travis": "run-p test:coverage build && cat ./coverage/lcov.info | ./node_modules/coveralls/bin/coveralls.js"
+    },
+    "author": {
+        "name": "Jeff Lau",
+        "email": "jlau@uselesspickles.com",
+        "url": "http://www.uselesspickles.com"
+    },
+    "license": "MIT",
+    "devDependencies": {
+        "@types/jest": "23.1.3",
+        "@types/node": "10.5.0",
+        "coveralls": "3.0.1",
+        "dtslint": "0.3.0",
+        "jest": "23.2.0",
+        "npm-run-all": "4.1.3",
+        "prettier": "1.13.6",
+        "rimraf": "2.6.2",
+        "ts-jest": "22.4.6",
+        "tslint": "5.10.0",
+        "tslint-config-prettier": "1.13.0",
+        "typescript": "2.9.2"
+    },
+    "peerDependencies": {
+        "typescript": ">= 2.8.1"
+    },
+    "keywords": [
+        "typescript",
+        "string",
+        "number",
+        "enum",
+        "util"
+    ],
+    "jest": {
+        "cacheDirectory": "./jest_cache",
+        "transform": {
+            "^.+\\.ts$": "ts-jest"
+        },
+        "collectCoverageFrom": [
+            "src/**/*.{js,ts}",
+            "!**/node_modules/**"
+        ],
+        "coverageReporters": [
+            "text",
+            "lcov"
+        ],
+        "testRegex": "((\\.|/)(test|spec))\\.(ts|js)$",
+        "moduleFileExtensions": [
+            "ts",
+            "js"
+        ]
+    }
+}
