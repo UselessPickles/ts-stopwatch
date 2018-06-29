@@ -39,7 +39,7 @@ export class Stopwatch {
     private completedLaps: Stopwatch.Lap[] = [];
 
     /**
-     * Creates a new Stopatch instance.
+     * Creates a new Stopwatch instance.
      * The unit of all durations reported by this instance will match the
      * unit of time returned by the provided `getTime` param.
      *
@@ -66,27 +66,27 @@ export class Stopwatch {
     }
 
     /**
-     * Test if this stopwatch is currently {@link Stopatch.State#IDLE}.
+     * Test if this stopwatch is currently {@link Stopwatch.State#IDLE}.
      *
-     * @return true if this stopwatch is currently {@link Stopatch.State#IDLE}.
+     * @return true if this stopwatch is currently {@link Stopwatch.State#IDLE}.
      */
     public isIdle(): boolean {
         return this.getState() === Stopwatch.State.IDLE;
     }
 
     /**
-     * Test if this stopwatch is currently {@link Stopatch.State#RUNNING}.
+     * Test if this stopwatch is currently {@link Stopwatch.State#RUNNING}.
      *
-     * @return true if this stopwatch is currently {@link Stopatch.State#RUNNING}.
+     * @return true if this stopwatch is currently {@link Stopwatch.State#RUNNING}.
      */
     public isRunning(): boolean {
         return this.getState() === Stopwatch.State.RUNNING;
     }
 
     /**
-     * Test if this stopwatch is currently {@link Stopatch.State#STOPPED}.
+     * Test if this stopwatch is currently {@link Stopwatch.State#STOPPED}.
      *
-     * @return true if this stopwatch is currently {@link Stopatch.State#STOPPED}.
+     * @return true if this stopwatch is currently {@link Stopwatch.State#STOPPED}.
      */
     public isStopped(): boolean {
         return this.getState() === Stopwatch.State.STOPPED;
@@ -96,7 +96,7 @@ export class Stopwatch {
      * Get the total amount of time that this stopwatch has been running since
      * the last reset.
      *
-     * Returns zero if the state is currently {@link Stopatch.State#IDLE}.
+     * Returns zero if the state is currently {@link Stopwatch.State#IDLE}.
      *
      * @return the total amount of time that this stopwatch has been running since
      * the last reset.
@@ -108,7 +108,7 @@ export class Stopwatch {
     /**
      * Get details about the current pending lap for this stopwatch, as of now.
      *
-     * Returns a zero-length lap if the state is currently {@link Stopatch.State#IDLE}.
+     * Returns a zero-length lap if the state is currently {@link Stopwatch.State#IDLE}.
      *
      * @return details about the current pending lap for this stopwatch, as of now.
      */
@@ -137,10 +137,10 @@ export class Stopwatch {
     /**
      * Starts (or resumes) running this stopwatch.
      *
-     * Does nothing if the state is already {@link Stopatch.State#RUNNING} and `forceReset`
+     * Does nothing if the state is already {@link Stopwatch.State#RUNNING} and `forceReset`
      * is false.
      *
-     * The state is guaranteed to be {@link Stopatch.State#RUNNING} after
+     * The state is guaranteed to be {@link Stopwatch.State#RUNNING} after
      * calling this method.
      *
      * @param forceReset - If true, then the stopwatch is {@link #reset} before starting.
@@ -172,9 +172,9 @@ export class Stopwatch {
      * starts the next pending lap.
      *
      * Does nothing and returns a zero-length lap if the state is
-     * currently {@link Stopatch.State#IDLE}.
+     * currently {@link Stopwatch.State#IDLE}.
      *
-     * If the state is currently {@link Stopatch.State#STOPPED}, then the lap
+     * If the state is currently {@link Stopwatch.State#STOPPED}, then the lap
      * technically ends (and the next pending lap starts) at the same time
      * the stopwatch was stopped.
      *
@@ -192,14 +192,14 @@ export class Stopwatch {
      * or the current pending lap while it is stopped. Call {@link #start} to resume
      * accumulating time.
      *
-     * Does nothing and returns zero if the state is currently {@link Stopatch.State#IDLE}.
+     * Does nothing and returns zero if the state is currently {@link Stopwatch.State#IDLE}.
      *
-     * Stopping a stopwatch that is already {@link Stopatch.State#STOPPED} will still
+     * Stopping a stopwatch that is already {@link Stopwatch.State#STOPPED} will still
      * record another lap if `recordPendingLap` is true.
      *
-     * The state will be {@link Stopatch.State#STOPPED} after calling this method if
-     * the state is not currently {@link Stopatch.State#IDLE}. otherwise, it will remain
-     * {@link Stopatch.State#IDLE}.
+     * The state will be {@link Stopwatch.State#STOPPED} after calling this method if
+     * the state is not currently {@link Stopwatch.State#IDLE}. otherwise, it will remain
+     * {@link Stopwatch.State#IDLE}.
      *
      * @param recordPendingLap - If true, then also end/record the current pending lap.
      *        This ensures that lap is ended exactly at the same time that the stopwatch
@@ -225,7 +225,7 @@ export class Stopwatch {
     /**
      * Completely resets this stopwatch to its initial state.
      * Clears out all recorded running duration, laps, etc.
-     * The state is guaranteed to be {@link Stopatch.State#IDLE} after
+     * The state is guaranteed to be {@link Stopwatch.State#IDLE} after
      * calling this method.
      */
     public reset(): void {
