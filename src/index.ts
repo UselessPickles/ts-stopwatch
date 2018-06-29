@@ -146,13 +146,12 @@ export class Stopwatch {
      * @param forceReset - If true, then the stopwatch is {@link #reset} before starting.
      */
     public start(forceReset: boolean = false): void {
-        const now = this.getTime();
-
         if (forceReset) {
             this.reset();
         }
 
         if (this.stopTime !== undefined) {
+            const now = this.getTime();
             const stopDuration = now - this.stopTime;
 
             // Accumulate duration ot stop
@@ -161,6 +160,7 @@ export class Stopwatch {
             // Resume running
             this.stopTime = undefined;
         } else if (this.startTime === undefined) {
+            const now = this.getTime();
             // Record initial start time
             this.startTime = now;
             this.pendingLapStartTime = now;

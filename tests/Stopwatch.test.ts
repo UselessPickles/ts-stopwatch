@@ -227,7 +227,7 @@ describe("Stopwatch", () => {
 
             getTime.mockReturnValue(1100);
             stopwatch.start();
-            expect(getTime).toHaveBeenCalledTimes(2);
+            expect(getTime).toHaveBeenCalledTimes(1);
 
             getTime.mockReturnValue(1200);
 
@@ -235,24 +235,24 @@ describe("Stopwatch", () => {
             expect(stopwatch.isIdle()).toBe(false);
             expect(stopwatch.isRunning()).toBe(true);
             expect(stopwatch.isStopped()).toBe(false);
-            expect(getTime).toHaveBeenCalledTimes(2);
+            expect(getTime).toHaveBeenCalledTimes(1);
 
             expect(stopwatch.getDuration()).toBe(200);
-            expect(getTime).toHaveBeenCalledTimes(3);
+            expect(getTime).toHaveBeenCalledTimes(2);
             expect(stopwatch.getPendingLap()).toEqual({
                 totalDuration: 200,
                 lapDuration: 200
             });
-            expect(getTime).toHaveBeenCalledTimes(4);
+            expect(getTime).toHaveBeenCalledTimes(3);
             expect(stopwatch.getCompletedLaps()).toEqual([]);
-            expect(getTime).toHaveBeenCalledTimes(4);
+            expect(getTime).toHaveBeenCalledTimes(3);
             expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
                 {
                     totalDuration: 200,
                     lapDuration: 200
                 }
             ]);
-            expect(getTime).toHaveBeenCalledTimes(5);
+            expect(getTime).toHaveBeenCalledTimes(4);
         });
 
         test("initial -> start -> reset", () => {
