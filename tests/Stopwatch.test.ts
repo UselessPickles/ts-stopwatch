@@ -112,6 +112,39 @@ describe("Stopwatch", () => {
         });
     });
 
+    test("Lists of slices are defensively copied", () => {
+        const getTime = jest.fn();
+        const stopwatch = new Stopwatch(getTime);
+
+        getTime.mockReturnValue(1000);
+        stopwatch.start();
+        getTime.mockReturnValue(1100);
+        stopwatch.slice();
+        getTime.mockReturnValue(1300);
+        stopwatch.slice();
+        getTime.mockReturnValue(1700);
+
+        const completedSlices = stopwatch.getCompletedSlices();
+        const copyOfCompletedSlices = Array.from(completedSlices);
+
+        completedSlices.splice(1, 1);
+        expect(completedSlices).not.toEqual(copyOfCompletedSlices);
+        expect(stopwatch.getCompletedSlices()).toEqual(copyOfCompletedSlices);
+
+        const completedAndPendingSlices = stopwatch.getCompletedAndPendingSlices();
+        const copyOfCompletedAndPendingSlices = Array.from(
+            completedAndPendingSlices
+        );
+
+        completedAndPendingSlices.splice(1, 1);
+        expect(completedAndPendingSlices).not.toEqual(
+            copyOfCompletedAndPendingSlices
+        );
+        expect(stopwatch.getCompletedAndPendingSlices()).toEqual(
+            copyOfCompletedAndPendingSlices
+        );
+    });
+
     describe("Basic usage", () => {
         test("initial", () => {
             const getTime = jest.fn();
