@@ -1,10 +1,12 @@
 import { Stopwatch } from "../src";
 
 /**
- * Non-readonly version of a Stopwatch.Lap.
- * Used to typecast a Lap to try mutating its properties at runtime.
+ * Non-readonly version of a Stopwatch.Slice.
+ * Used to typecast a Slice to try mutating its properties at runtime.
  */
-type MutableLap = { -readonly [P in keyof Stopwatch.Lap]: Stopwatch.Lap[P] };
+type MutableSlice = {
+    -readonly [P in keyof Stopwatch.Slice]: Stopwatch.Slice[P]
+};
 
 describe("Stopwatch", () => {
     test("Uses Date.now by default", (done) => {
@@ -12,30 +14,57 @@ describe("Stopwatch", () => {
         stopwatch.start();
 
         setTimeout(() => {
-            const duration = stopwatch.getDuration();
-            expect(duration).toBeGreaterThanOrEqual(249);
+            expect(stopwatch.getTime()).toBeGreaterThanOrEqual(249);
             done();
         }, 250);
     });
 
-    describe("Laps are read-only", () => {
+    test("Stopwatch.setDefaultSystemTimeGetter", (done) => {
+        const getTime = jest.fn();
+
+        // Set a mock implementation as the default system time getter
+        Stopwatch.setDefaultSystemTimeGetter(getTime);
+
+        // Ensure that the mock implementation is used by default
+        const stopwatch1 = new Stopwatch();
+        getTime.mockReturnValue(1000);
+        stopwatch1.start();
+        getTime.mockReturnValue(1100);
+        expect(stopwatch1.getTime()).toBe(100);
+        expect(getTime).toHaveBeenCalledTimes(2);
+
+        // Reset the default system time getter back to the default (Date.now)
+        Stopwatch.setDefaultSystemTimeGetter();
+
+        // Ensure that Date.now is used by default
+        const stopwatch2 = new Stopwatch();
+        stopwatch2.start();
+        setTimeout(() => {
+            // The mock implementation should not have been called any more times
+            expect(getTime).toHaveBeenCalledTimes(2);
+            expect(stopwatch2.getTime()).toBeGreaterThanOrEqual(249);
+            done();
+        }, 250);
+    });
+
+    describe("Slices are read-only", () => {
         test("while IDLE", () => {
             const stopwatch = new Stopwatch();
 
-            const pendingLap = stopwatch.getPendingLap();
-            const recordedLap = stopwatch.lap();
-            const completeAndPendingLaps = stopwatch.getCompletedAndPendingLaps();
+            const pendingSlice = stopwatch.getPendingSlice();
+            const recordedSlice = stopwatch.slice();
+            const completeAndPendingSlices = stopwatch.getCompletedAndPendingSlices();
 
             expect(() => {
-                (pendingLap as MutableLap).lapDuration = 42;
+                (pendingSlice as MutableSlice).endTime = 42;
             }).toThrow();
 
             expect(() => {
-                (recordedLap as MutableLap).lapDuration = 42;
+                (recordedSlice as MutableSlice).endTime = 42;
             }).toThrow();
 
             expect(() => {
-                (completeAndPendingLaps[0] as MutableLap).lapDuration = 42;
+                (completeAndPendingSlices[0] as MutableSlice).endTime = 42;
             }).toThrow();
         });
 
@@ -43,20 +72,20 @@ describe("Stopwatch", () => {
             const stopwatch = new Stopwatch();
             stopwatch.start();
 
-            const pendingLap = stopwatch.getPendingLap();
-            const recordedLap = stopwatch.lap();
-            const completeAndPendingLaps = stopwatch.getCompletedAndPendingLaps();
+            const pendingSlice = stopwatch.getPendingSlice();
+            const recordedSlice = stopwatch.slice();
+            const completeAndPendingSlices = stopwatch.getCompletedAndPendingSlices();
 
             expect(() => {
-                (pendingLap as MutableLap).lapDuration = 42;
+                (pendingSlice as MutableSlice).endTime = 42;
             }).toThrow();
 
             expect(() => {
-                (recordedLap as MutableLap).lapDuration = 42;
+                (recordedSlice as MutableSlice).endTime = 42;
             }).toThrow();
 
             expect(() => {
-                (completeAndPendingLaps[0] as MutableLap).lapDuration = 42;
+                (completeAndPendingSlices[0] as MutableSlice).endTime = 42;
             }).toThrow();
         });
 
@@ -65,20 +94,20 @@ describe("Stopwatch", () => {
             stopwatch.start();
             stopwatch.stop();
 
-            const pendingLap = stopwatch.getPendingLap();
-            const recordedLap = stopwatch.lap();
-            const completeAndPendingLaps = stopwatch.getCompletedAndPendingLaps();
+            const pendingSlice = stopwatch.getPendingSlice();
+            const recordedSlice = stopwatch.slice();
+            const completeAndPendingSlices = stopwatch.getCompletedAndPendingSlices();
 
             expect(() => {
-                (pendingLap as MutableLap).lapDuration = 42;
+                (pendingSlice as MutableSlice).endTime = 42;
             }).toThrow();
 
             expect(() => {
-                (recordedLap as MutableLap).lapDuration = 42;
+                (recordedSlice as MutableSlice).endTime = 42;
             }).toThrow();
 
             expect(() => {
-                (completeAndPendingLaps[0] as MutableLap).lapDuration = 42;
+                (completeAndPendingSlices[0] as MutableSlice).endTime = 42;
             }).toThrow();
         });
     });
@@ -97,19 +126,21 @@ describe("Stopwatch", () => {
             expect(getTime).toHaveBeenCalledTimes(0);
 
             getTime.mockReturnValue(1100);
-            expect(stopwatch.getDuration()).toBe(0);
+            expect(stopwatch.getTime()).toBe(0);
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 0,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 0,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 0,
-                    lapDuration: 0
+                    startTime: 0,
+                    endTime: 0,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(0);
@@ -131,19 +162,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(0);
 
-            expect(stopwatch.getDuration()).toBe(0);
+            expect(stopwatch.getTime()).toBe(0);
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 0,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 0,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 0,
-                    lapDuration: 0
+                    startTime: 0,
+                    endTime: 0,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(0);
@@ -165,19 +198,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(0);
 
-            expect(stopwatch.getDuration()).toBe(0);
+            expect(stopwatch.getTime()).toBe(0);
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 0,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 0,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 0,
-                    lapDuration: 0
+                    startTime: 0,
+                    endTime: 0,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(0);
@@ -199,19 +234,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(1);
 
-            expect(stopwatch.getDuration()).toBe(100);
+            expect(stopwatch.getTime()).toBe(100);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 100
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 100,
+                duration: 100
             });
             expect(getTime).toHaveBeenCalledTimes(3);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(3);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(4);
@@ -237,19 +274,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(1);
 
-            expect(stopwatch.getDuration()).toBe(200);
+            expect(stopwatch.getTime()).toBe(200);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 200,
-                lapDuration: 200
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 200,
+                duration: 200
             });
             expect(getTime).toHaveBeenCalledTimes(3);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(3);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 200,
-                    lapDuration: 200
+                    startTime: 0,
+                    endTime: 200,
+                    duration: 200
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(4);
@@ -275,19 +314,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(1);
 
-            expect(stopwatch.getDuration()).toBe(0);
+            expect(stopwatch.getTime()).toBe(0);
             expect(getTime).toHaveBeenCalledTimes(1);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 0,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 0,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(1);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(1);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 0,
-                    lapDuration: 0
+                    startTime: 0,
+                    endTime: 0,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(1);
@@ -313,18 +354,20 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(true);
             expect(getTime).toHaveBeenCalledTimes(2);
 
-            expect(stopwatch.getDuration()).toBe(100);
+            expect(stopwatch.getTime()).toBe(100);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 100
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 100,
+                duration: 100
             });
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
@@ -354,19 +397,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(true);
             expect(getTime).toHaveBeenCalledTimes(2);
 
-            expect(stopwatch.getDuration()).toBe(100);
+            expect(stopwatch.getTime()).toBe(100);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 100
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 100,
+                duration: 100
             });
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
@@ -396,19 +441,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(3);
 
-            expect(stopwatch.getDuration()).toBe(200);
+            expect(stopwatch.getTime()).toBe(200);
             expect(getTime).toHaveBeenCalledTimes(4);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 200,
-                lapDuration: 200
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 200,
+                duration: 200
             });
             expect(getTime).toHaveBeenCalledTimes(5);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(5);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 200,
-                    lapDuration: 200
+                    startTime: 0,
+                    endTime: 200,
+                    duration: 200
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(6);
@@ -438,47 +485,52 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(2);
 
-            expect(stopwatch.getDuration()).toBe(0);
+            expect(stopwatch.getTime()).toBe(0);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 0,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 0,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 0,
-                    lapDuration: 0
+                    startTime: 0,
+                    endTime: 0,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
         });
     });
 
-    describe("Basic lap usage", () => {
+    describe("Basic slice usage", () => {
         test("while IDLE", () => {
             const getTime = jest.fn();
             const stopwatch = new Stopwatch(getTime);
 
             getTime.mockReturnValue(1000);
-            expect(stopwatch.lap()).toEqual({
-                totalDuration: 0,
-                lapDuration: 0
+            expect(stopwatch.slice()).toEqual({
+                startTime: 0,
+                endTime: 0,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 0,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 0,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 0,
-                    lapDuration: 0
+                    startTime: 0,
+                    endTime: 0,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(0);
@@ -494,111 +546,129 @@ describe("Stopwatch", () => {
 
             getTime.mockReturnValue(1100);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 100
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 100,
+                duration: 100
             });
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(3);
 
-            expect(stopwatch.lap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 100
+            expect(stopwatch.slice()).toEqual({
+                startTime: 0,
+                endTime: 100,
+                duration: 100
             });
             expect(getTime).toHaveBeenCalledTimes(4);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 100,
+                endTime: 100,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(5);
-            expect(stopwatch.getCompletedLaps()).toEqual([
+            expect(stopwatch.getCompletedSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(5);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 100,
-                    lapDuration: 0
+                    startTime: 100,
+                    endTime: 100,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(6);
 
             getTime.mockReturnValue(1300);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 300,
-                lapDuration: 200
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 100,
+                endTime: 300,
+                duration: 200
             });
             expect(getTime).toHaveBeenCalledTimes(7);
-            expect(stopwatch.getCompletedLaps()).toEqual([
+            expect(stopwatch.getCompletedSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(7);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 300,
-                    lapDuration: 200
+                    startTime: 100,
+                    endTime: 300,
+                    duration: 200
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(8);
 
-            expect(stopwatch.lap()).toEqual({
-                totalDuration: 300,
-                lapDuration: 200
+            expect(stopwatch.slice()).toEqual({
+                startTime: 100,
+                endTime: 300,
+                duration: 200
             });
             expect(getTime).toHaveBeenCalledTimes(9);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 300,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 300,
+                endTime: 300,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(10);
-            expect(stopwatch.getCompletedLaps()).toEqual([
+            expect(stopwatch.getCompletedSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 300,
-                    lapDuration: 200
+                    startTime: 100,
+                    endTime: 300,
+                    duration: 200
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(10);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 300,
-                    lapDuration: 200
+                    startTime: 100,
+                    endTime: 300,
+                    duration: 200
                 },
                 {
-                    totalDuration: 300,
-                    lapDuration: 0
+                    startTime: 300,
+                    endTime: 300,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(11);
@@ -618,111 +688,129 @@ describe("Stopwatch", () => {
 
             getTime.mockReturnValue(1200);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 100
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 100,
+                duration: 100
             });
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
 
-            expect(stopwatch.lap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 100
+            expect(stopwatch.slice()).toEqual({
+                startTime: 0,
+                endTime: 100,
+                duration: 100
             });
             expect(getTime).toHaveBeenCalledTimes(2);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 100,
+                endTime: 100,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedLaps()).toEqual([
+            expect(stopwatch.getCompletedSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 100,
-                    lapDuration: 0
+                    startTime: 100,
+                    endTime: 100,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
 
             getTime.mockReturnValue(1300);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 100,
+                endTime: 100,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedLaps()).toEqual([
+            expect(stopwatch.getCompletedSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 100,
-                    lapDuration: 0
+                    startTime: 100,
+                    endTime: 100,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
 
-            expect(stopwatch.lap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 0
+            expect(stopwatch.slice()).toEqual({
+                startTime: 100,
+                endTime: 100,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(2);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 100,
+                endTime: 100,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedLaps()).toEqual([
+            expect(stopwatch.getCompletedSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 100,
-                    lapDuration: 0
+                    startTime: 100,
+                    endTime: 100,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 100,
-                    lapDuration: 0
+                    startTime: 100,
+                    endTime: 100,
+                    duration: 0
                 },
                 {
-                    totalDuration: 100,
-                    lapDuration: 0
+                    startTime: 100,
+                    endTime: 100,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
@@ -750,47 +838,54 @@ describe("Stopwatch", () => {
 
             getTime.mockReturnValue(1400);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 200,
-                lapDuration: 200
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 200,
+                duration: 200
             });
             expect(getTime).toHaveBeenCalledTimes(4);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(4);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 200,
-                    lapDuration: 200
+                    startTime: 0,
+                    endTime: 200,
+                    duration: 200
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(4);
 
-            expect(stopwatch.lap()).toEqual({
-                totalDuration: 200,
-                lapDuration: 200
+            expect(stopwatch.slice()).toEqual({
+                startTime: 0,
+                endTime: 200,
+                duration: 200
             });
             expect(getTime).toHaveBeenCalledTimes(4);
 
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 200,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 200,
+                endTime: 200,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(4);
-            expect(stopwatch.getCompletedLaps()).toEqual([
+            expect(stopwatch.getCompletedSlices()).toEqual([
                 {
-                    totalDuration: 200,
-                    lapDuration: 200
+                    startTime: 0,
+                    endTime: 200,
+                    duration: 200
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(4);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 200,
-                    lapDuration: 200
+                    startTime: 0,
+                    endTime: 200,
+                    duration: 200
                 },
                 {
-                    totalDuration: 200,
-                    lapDuration: 0
+                    startTime: 200,
+                    endTime: 200,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(4);
@@ -814,19 +909,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(1);
 
-            expect(stopwatch.getDuration()).toBe(100);
+            expect(stopwatch.getTime()).toBe(100);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 100
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 100,
+                duration: 100
             });
             expect(getTime).toHaveBeenCalledTimes(3);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(3);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(4);
@@ -849,7 +946,7 @@ describe("Stopwatch", () => {
             expect(getTime).toHaveBeenCalledTimes(3);
 
             getTime.mockReturnValue(1300);
-            stopwatch.lap();
+            stopwatch.slice();
             expect(getTime).toHaveBeenCalledTimes(4);
 
             getTime.mockReturnValue(1400);
@@ -864,19 +961,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(5);
 
-            expect(stopwatch.getDuration()).toBe(100);
+            expect(stopwatch.getTime()).toBe(100);
             expect(getTime).toHaveBeenCalledTimes(6);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 100
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 100,
+                duration: 100
             });
             expect(getTime).toHaveBeenCalledTimes(7);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(7);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(8);
@@ -900,19 +999,21 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(false);
             expect(getTime).toHaveBeenCalledTimes(0);
 
-            expect(stopwatch.getDuration()).toBe(0);
+            expect(stopwatch.getTime()).toBe(0);
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 0,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 0,
+                endTime: 0,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedLaps()).toEqual([]);
+            expect(stopwatch.getCompletedSlices()).toEqual([]);
             expect(getTime).toHaveBeenCalledTimes(0);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 0,
-                    lapDuration: 0
+                    startTime: 0,
+                    endTime: 0,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(0);
@@ -936,28 +1037,32 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(true);
             expect(getTime).toHaveBeenCalledTimes(2);
 
-            expect(stopwatch.getDuration()).toBe(100);
+            expect(stopwatch.getTime()).toBe(100);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 100,
+                endTime: 100,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedLaps()).toEqual([
+            expect(stopwatch.getCompletedSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 100,
-                    lapDuration: 0
+                    startTime: 100,
+                    endTime: 100,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
@@ -985,28 +1090,32 @@ describe("Stopwatch", () => {
             expect(stopwatch.isStopped()).toBe(true);
             expect(getTime).toHaveBeenCalledTimes(2);
 
-            expect(stopwatch.getDuration()).toBe(100);
+            expect(stopwatch.getTime()).toBe(100);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getPendingLap()).toEqual({
-                totalDuration: 100,
-                lapDuration: 0
+            expect(stopwatch.getPendingSlice()).toEqual({
+                startTime: 100,
+                endTime: 100,
+                duration: 0
             });
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedLaps()).toEqual([
+            expect(stopwatch.getCompletedSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);
-            expect(stopwatch.getCompletedAndPendingLaps()).toEqual([
+            expect(stopwatch.getCompletedAndPendingSlices()).toEqual([
                 {
-                    totalDuration: 100,
-                    lapDuration: 100
+                    startTime: 0,
+                    endTime: 100,
+                    duration: 100
                 },
                 {
-                    totalDuration: 100,
-                    lapDuration: 0
+                    startTime: 100,
+                    endTime: 100,
+                    duration: 0
                 }
             ]);
             expect(getTime).toHaveBeenCalledTimes(2);

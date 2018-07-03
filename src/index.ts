@@ -3,51 +3,47 @@
  */
 export class Stopwatch {
     /**
-     * The time at which the stopwatch was started.
+     * The system time at which the stopwatch was started.
      * Undefined if the stopwatch is not yet started, or has been reset.
      */
-    private startTime: number | undefined;
+    private startSystemTime: number | undefined;
 
     /**
-     * The time at which the stopwatch was stopped.
+     * The system time at which the stopwatch was stopped.
      * Undefined if the stopwatch is not currently stopped,
      * is not yet started, or has been reset.
      */
-    private stopTime: number | undefined;
+    private stopSystemTime: number | undefined;
 
     /**
-     * The total amount of time the stopwatch has been stopped since
+     * The total amount of system time the stopwatch has been stopped since
      * the last reset.
      */
     private stopDuration: number = 0;
 
     /**
-     * The time at wich the current pendign lap was started.
+     * The stopwatch time at which the current pending slice was started.
      * Undefined if the stopwatch is not yet started, or has been reset.
      */
-    private pendingLapStartTime: number | undefined;
+    private pendingSliceStartStopwatchTime: number | undefined;
 
     /**
-     * The total amount of time the stopwatch has been stopped since
-     * the the current pending lap was started.
+     * Recorded results of all completed slices since the the last reset.
      */
-    private pendingLapStopDuration: number = 0;
-
-    /**
-     * Recorded results of all completed laps sinse the the last reset.
-     */
-    private completedLaps: Stopwatch.Lap[] = [];
+    private completedSlices: Stopwatch.Slice[] = [];
 
     /**
      * Creates a new Stopwatch instance.
      * The unit of all durations reported by this instance will match the
-     * unit of time returned by the provided `getTime` param.
+     * unit of time returned by the provided `getSystemTime` param.
      *
-     * @param getTime - A callback that returns "the current time".
-     *        Defaults to {@link Date.now}.
+     * @param getSystemTime - A callback that returns the current system time.
+     *        Defaults to the current default system time getter as specified by the most
+     *        recent call to {@link Stopwatch.setDefaultSystemTimeGetter}, which in turn
+     *        defaults to {@link Date.now}.
      */
     public constructor(
-        private readonly getTime: Stopwatch.GetTimeFunc = Date.now
+        private readonly getSystemTime: Stopwatch.GetTimeFunc = defaultSystemTimeGetter
     ) {}
 
     /**
@@ -56,9 +52,9 @@ export class Stopwatch {
      * @return the current state of this stopwatch.
      */
     public getState(): Stopwatch.State {
-        if (this.startTime === undefined) {
+        if (this.startSystemTime === undefined) {
             return Stopwatch.State.IDLE;
-        } else if (this.stopTime === undefined) {
+        } else if (this.stopSystemTime === undefined) {
             return Stopwatch.State.RUNNING;
         } else {
             return Stopwatch.State.STOPPED;
@@ -93,45 +89,45 @@ export class Stopwatch {
     }
 
     /**
-     * Get the total amount of time that this stopwatch has been running since
+     * Get the current stopwatch time.
+     * This is the total amount of system time that this stopwatch has been running since
      * the last reset.
      *
      * Returns zero if the state is currently {@link Stopwatch.State#IDLE}.
      *
-     * @return the total amount of time that this stopwatch has been running since
-     * the last reset.
+     * @return the current stopwatch time.
      */
-    public getDuration(): number {
-        return this.calculateDuration();
+    public getTime(): number {
+        return this.calculateStopwatchTime();
     }
 
     /**
-     * Get details about the current pending lap for this stopwatch, as of now.
+     * Get details about the current pending slice for this stopwatch, as of now.
      *
-     * Returns a zero-length lap if the state is currently {@link Stopwatch.State#IDLE}.
+     * Returns a zero-length slice if the state is currently {@link Stopwatch.State#IDLE}.
      *
-     * @return details about the current pending lap for this stopwatch, as of now.
+     * @return details about the current pending slice for this stopwatch, as of now.
      */
-    public getPendingLap(): Stopwatch.Lap {
-        return this.calculatePendingLap();
+    public getPendingSlice(): Stopwatch.Slice {
+        return this.calculatePendingSlice();
     }
 
     /**
-     * Get a list of all completed/recorded laps for this stopwatch since the last reset.
-     * @return a list of all completed/recorded laps for this stopwatch since the last reset.
+     * Get a list of all completed/recorded slices for this stopwatch since the last reset.
+     * @return a list of all completed/recorded slices for this stopwatch since the last reset.
      */
-    public getCompletedLaps(): Stopwatch.Lap[] {
-        return Array.from(this.completedLaps);
+    public getCompletedSlices(): Stopwatch.Slice[] {
+        return Array.from(this.completedSlices);
     }
 
     /**
-     * Get a list of all completed/recorded laps for this stopwatch since the last reset,
-     * plus the current pending lap.
-     * @return a list of all completed/recorded laps for this stopwatch since the last reset,
-     * plus the current pending lap.
+     * Get a list of all completed/recorded slices for this stopwatch since the last reset,
+     * plus the current pending slice.
+     * @return a list of all completed/recorded slices for this stopwatch since the last reset,
+     * plus the current pending slice.
      */
-    public getCompletedAndPendingLaps(): Stopwatch.Lap[] {
-        return [...this.completedLaps, this.getPendingLap()];
+    public getCompletedAndPendingSlices(): Stopwatch.Slice[] {
+        return [...this.completedSlices, this.getPendingSlice()];
     }
 
     /**
@@ -150,171 +146,168 @@ export class Stopwatch {
             this.reset();
         }
 
-        if (this.stopTime !== undefined) {
-            const now = this.getTime();
-            const stopDuration = now - this.stopTime;
+        if (this.stopSystemTime !== undefined) {
+            const systemNow = this.getSystemTime();
+            const stopDuration = systemNow - this.stopSystemTime;
 
             // Accumulate duration ot stop
             this.stopDuration += stopDuration;
-            this.pendingLapStopDuration += stopDuration;
             // Resume running
-            this.stopTime = undefined;
-        } else if (this.startTime === undefined) {
-            const now = this.getTime();
+            this.stopSystemTime = undefined;
+        } else if (this.startSystemTime === undefined) {
+            const systemNow = this.getSystemTime();
             // Record initial start time
-            this.startTime = now;
-            this.pendingLapStartTime = now;
+            this.startSystemTime = systemNow;
+            this.pendingSliceStartStopwatchTime = 0;
         }
     }
 
     /**
-     * Ends the currently pending lap {@link Stopwatch.Lap}, records it, and
-     * starts the next pending lap.
+     * Ends the currently pending slice {@link Stopwatch.Slice}, records it, and
+     * starts the next pending slice.
      *
-     * Does nothing and returns a zero-length lap if the state is
+     * Does nothing and returns a zero-length slice if the state is
      * currently {@link Stopwatch.State#IDLE}.
      *
-     * If the state is currently {@link Stopwatch.State#STOPPED}, then the lap
-     * technically ends (and the next pending lap starts) at the same time
+     * If the state is currently {@link Stopwatch.State#STOPPED}, then the slice
+     * technically ends (and the next pending slice starts) at the same time
      * the stopwatch was stopped.
      *
      * This method does not change the state of the stopwatch.
      *
-     * @returns the recorded lap.
+     * @returns the recorded slice.
      */
-    public lap(): Stopwatch.Lap {
-        return this.recordPendingLap();
+    public slice(): Stopwatch.Slice {
+        return this.recordPendingSlice();
     }
 
     /**
-     * Stops (pauses) this stopwatch and returns the current {@link #getDuration}
+     * Stops (pauses) this stopwatch and returns the current {@link #getTime}
      * result. Time will not be accumulated to this stopwatch's total running duration
-     * or the current pending lap while it is stopped. Call {@link #start} to resume
+     * or the current pending slice while it is stopped. Call {@link #start} to resume
      * accumulating time.
      *
      * Does nothing and returns zero if the state is currently {@link Stopwatch.State#IDLE}.
      *
      * Stopping a stopwatch that is already {@link Stopwatch.State#STOPPED} will still
-     * record another lap if `recordPendingLap` is true.
+     * record another slice if `recordPendingSlice` is true.
      *
      * The state will be {@link Stopwatch.State#STOPPED} after calling this method if
      * the state is not currently {@link Stopwatch.State#IDLE}. otherwise, it will remain
      * {@link Stopwatch.State#IDLE}.
      *
-     * @param recordPendingLap - If true, then also end/record the current pending lap.
-     *        This ensures that lap is ended exactly at the same time that the stopwatch
+     * @param recordPendingSlice - If true, then also end/record the current pending slice.
+     *        This ensures that slice is ended exactly at the same time that the stopwatch
      *        is stopped.
-     * @return the current {@link #getDuration} result.
+     * @return the current {@link #getTime} result.
      */
-    public stop(recordPendingLap: boolean = false): number {
-        if (this.startTime === undefined) {
+    public stop(recordPendingSlice: boolean = false): number {
+        if (this.startSystemTime === undefined) {
             return 0;
         }
 
-        const now = this.getPossiblyStoppedTime();
+        const systemNow = this.getSystemTimeOfCurrentStopwatchTime();
 
-        if (recordPendingLap) {
-            this.recordPendingLap(now);
+        if (recordPendingSlice) {
+            this.recordPendingSlice(this.calculateStopwatchTime(systemNow));
         }
 
-        this.stopTime = now;
+        this.stopSystemTime = systemNow;
 
-        return this.getDuration();
+        return this.getTime();
     }
 
     /**
      * Completely resets this stopwatch to its initial state.
-     * Clears out all recorded running duration, laps, etc.
+     * Clears out all recorded running duration, slices, etc.
      * The state is guaranteed to be {@link Stopwatch.State#IDLE} after
      * calling this method.
      */
     public reset(): void {
-        this.startTime = this.pendingLapStartTime = this.stopTime = undefined;
-        this.stopDuration = this.pendingLapStopDuration = 0;
-        this.completedLaps = [];
+        this.startSystemTime = this.pendingSliceStartStopwatchTime = this.stopSystemTime = undefined;
+        this.stopDuration = 0;
+        this.completedSlices = [];
     }
 
     /**
-     * Gets the current "potentially stopped" time for this stopwatch.
-     * If this stopwatch is currently stopped, then the time at which it was
+     * Gets the system time equivalent of the current stopwatch time.
+     * If this stopwatch is currently stopped, then the system time at which it was
      * stopped is returned.
-     * otherwise, the current time according to {@link Stopwatch#getTime} is
+     * Otherwise, the current system time according to {@link Stopwatch#getSystemTime} is
      * returned.
-     * @return the "potentially stopped" time for this stopwatch.
+     * @return the system time equivalent of the current stopwatch time.
      */
-    private getPossiblyStoppedTime(): number {
-        return this.stopTime === undefined ? this.getTime() : this.stopTime;
+    private getSystemTimeOfCurrentStopwatchTime(): number {
+        return this.stopSystemTime === undefined
+            ? this.getSystemTime()
+            : this.stopSystemTime;
     }
 
     /**
-     * Calculates the total running duration of this stopwatch as of a
-     * specified end time.
-     * @param endTime - The end time for the calculation.
-     * @return the total running duration of this stopwatch as of a
-     * specified end time.
+     * Calculates the current stopwatch time as of a specified system time.
+     * @param endSystemTime - The end system time for the calculation.
+     * @return the current stopwatch time as of the specified system time.
      */
-    private calculateDuration(endTime?: number): number {
-        if (this.startTime === undefined) {
+    private calculateStopwatchTime(endSystemTime?: number): number {
+        if (this.startSystemTime === undefined) {
             return 0;
         }
 
-        if (endTime === undefined) {
-            endTime = this.getPossiblyStoppedTime();
+        if (endSystemTime === undefined) {
+            endSystemTime = this.getSystemTimeOfCurrentStopwatchTime();
         }
 
-        return endTime - this.startTime - this.stopDuration;
+        return endSystemTime - this.startSystemTime - this.stopDuration;
     }
 
     /**
-     * Calculates the current pending lap as of a specified end time.
-     * @param lapEndTime - The end time for the calculation.
-     * @return the current pending lap as of a specified end time.
+     * Calculates the current pending slice as of a specified stopwatch time.
+     * @param endStopwatchTime - The end stopwatch time for the calculation.
+     * @return the current pending slice as of the specified stopwatch time.
      */
-    private calculatePendingLap(lapEndTime?: number): Stopwatch.Lap {
-        if (this.pendingLapStartTime === undefined) {
+    private calculatePendingSlice(endStopwatchTime?: number): Stopwatch.Slice {
+        if (this.pendingSliceStartStopwatchTime === undefined) {
             return Object.freeze({
-                totalDuration: 0,
-                lapDuration: 0
+                startTime: 0,
+                endTime: 0,
+                duration: 0
             });
         }
 
-        if (lapEndTime === undefined) {
-            lapEndTime = this.getPossiblyStoppedTime();
+        if (endStopwatchTime === undefined) {
+            endStopwatchTime = this.getTime();
         }
 
         return Object.freeze({
-            totalDuration: this.calculateDuration(lapEndTime),
-            lapDuration:
-                lapEndTime -
-                this.pendingLapStartTime -
-                this.pendingLapStopDuration
+            startTime: this.pendingSliceStartStopwatchTime,
+            endTime: endStopwatchTime,
+            duration: endStopwatchTime - this.pendingSliceStartStopwatchTime
         });
     }
 
     /**
-     * Private implementation of ending/recording the currently pending lap.
-     * See {@link #lap} for more explanation.
-     * @param lapEndTime - The end time of the lap.
-     * @return the recorded lap.
+     * Private implementation of ending/recording the currently pending slice.
+     * See {@link #slice} for more explanation.
+     * @param endStopwatchTime - The end stopwatch time of the slice.
+     * @return the recorded slice.
      */
-    private recordPendingLap(lapEndTime?: number): Stopwatch.Lap {
-        if (this.pendingLapStartTime !== undefined) {
-            if (lapEndTime === undefined) {
-                lapEndTime = this.getPossiblyStoppedTime();
+    private recordPendingSlice(endStopwatchTime?: number): Stopwatch.Slice {
+        if (this.pendingSliceStartStopwatchTime !== undefined) {
+            if (endStopwatchTime === undefined) {
+                endStopwatchTime = this.getTime();
             }
 
-            const lap = this.calculatePendingLap(lapEndTime);
+            const slice = this.calculatePendingSlice(endStopwatchTime);
 
-            // Start the next pending lap
-            this.pendingLapStartTime = lapEndTime;
-            this.pendingLapStopDuration = 0;
+            // Start the next pending slice
+            this.pendingSliceStartStopwatchTime = slice.endTime;
 
-            // Record the lap
-            this.completedLaps.push(lap);
+            // Record the slice
+            this.completedSlices.push(slice);
 
-            return lap;
+            return slice;
         } else {
-            return this.calculatePendingLap();
+            return this.calculatePendingSlice();
         }
     }
 }
@@ -328,17 +321,21 @@ export namespace Stopwatch {
     export type GetTimeFunc = () => number;
 
     /**
-     * Measurements of a single "lap" recorded by a {@link Stopwatch}.
+     * Measurements of a single "slice" recorded by a {@link Stopwatch}.
      */
-    export interface Lap {
+    export interface Slice {
         /**
-         * The total running duration of the stopwatch at the time the lap was ended.
+         * The stopwatch time at the start of this slice.
          */
-        readonly totalDuration: number;
+        readonly startTime: number;
         /**
-         * The running duration of this lap (a.k.a., "split time").
+         * The stopwatch time at the end of this slice.
          */
-        readonly lapDuration: number;
+        readonly endTime: number;
+        /**
+         * The running duration of this slice (a.k.a., "split time").
+         */
+        readonly duration: number;
     }
 
     /**
@@ -358,4 +355,25 @@ export namespace Stopwatch {
          */
         STOPPED = "STOPPED"
     }
+
+    /**
+     * Sets the default implementation of "getSystemTime" to be used by all future
+     * instances of {@link Stopwatch}.
+     * @param systemTimeGetter - A default "getSystemTime" implementation for
+     *        all future instances of {@link Stopwatch}.
+     *        Defaults to {@link Date.now}.
+     */
+    export function setDefaultSystemTimeGetter(
+        systemTimeGetter: GetTimeFunc = Date.now
+    ): void {
+        defaultSystemTimeGetter = systemTimeGetter;
+    }
 }
+
+/**
+ * The default "getSystemTime" implementation for all new instances of
+ * {@link Stopwatch}.
+ * Defaults to {@link Date.now}.
+ * Updated via {@link Stopwatch.setDefaultSystemTimeGetter}.
+ */
+let defaultSystemTimeGetter: Stopwatch.GetTimeFunc = Date.now;

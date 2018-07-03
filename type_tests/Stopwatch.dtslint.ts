@@ -3,10 +3,12 @@ import { Stopwatch } from "../dist/types";
 // $ExpectType Stopwatch
 const stopwatch = new Stopwatch();
 
-// Verify that Laps are readonly
-// $ExpectType Lap
-const lap = stopwatch.getPendingLap();
+// Verify that Slices are readonly
+// $ExpectType Slice
+const slice = stopwatch.getPendingSlice();
 // $ExpectError
-lap.lapDuration = 0;
+slice.startTime = 0;
 // $ExpectError
-lap.totalDuration = 0;
+slice.endTime = 0;
+// $ExpectError
+slice.duration = 0;
