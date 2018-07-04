@@ -1,6 +1,6 @@
 {
     "name": "ts-stopwatch",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Stopwatch timer utility written in TypeScript",
     "repository": {
         "type": "git",
