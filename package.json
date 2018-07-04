@@ -60,9 +60,6 @@
         "tslint-config-prettier": "1.13.0",
         "typescript": "2.9.2"
     },
-    "peerDependencies": {
-        "typescript": ">= 2.8.1"
-    },
     "keywords": [
         "typescript",
         "string",
