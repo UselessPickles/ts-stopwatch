@@ -353,7 +353,7 @@ export namespace Stopwatch {
          */
         RUNNING = "RUNNING",
         /**
-         * The stopwatch was previouslt running, but has been stopped.
+         * The stopwatch was previously running, but has been stopped.
          */
         STOPPED = "STOPPED"
     }
