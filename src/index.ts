@@ -206,13 +206,15 @@ export class Stopwatch {
             return 0;
         }
 
-        const systemNow = this.getSystemTimeOfCurrentStopwatchTime();
+        const systemTimeOfStopwatchTime = this.getSystemTimeOfCurrentStopwatchTime();
 
         if (recordPendingSlice) {
-            this.recordPendingSlice(this.calculateStopwatchTime(systemNow));
+            this.recordPendingSlice(
+                this.calculateStopwatchTime(systemTimeOfStopwatchTime)
+            );
         }
 
-        this.stopSystemTime = systemNow;
+        this.stopSystemTime = systemTimeOfStopwatchTime;
 
         return this.getTime();
     }
