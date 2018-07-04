@@ -1,5 +1,4 @@
 import { Stopwatch } from "../src";
-import { performance } from "perf_hooks";
 
 /**
  * Non-readonly version of a Stopwatch.Slice.
