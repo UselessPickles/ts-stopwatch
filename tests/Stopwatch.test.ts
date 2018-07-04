@@ -1,4 +1,5 @@
 import { Stopwatch } from "../src";
+import { performance } from "perf_hooks";
 
 /**
  * Non-readonly version of a Stopwatch.Slice.
@@ -11,6 +12,9 @@ type MutableSlice = {
 describe("Stopwatch", () => {
     test("Uses Date.now by default", (done) => {
         const stopwatch = new Stopwatch();
+
+        expect((stopwatch as any).getSystemTime).toBe(Date.now);
+
         stopwatch.start();
 
         setTimeout(() => {
