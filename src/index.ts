@@ -1,5 +1,43 @@
 /**
- * TODO
+ * Records durations of time, with some inspiration from a physical stopwatch.
+ *
+ * To begin recording time, create a new instance of Stopwatch and call its
+ * {@link Stopwatch#start} method.
+ *
+ * Pause the stopwatch via {@link Stopwatch#stop}, then resume by calling
+ * {@link Stopwatch#start} again.
+ *
+ * Use {@link Stopwatch#getTime} to get the amount of time that the stopwatch has
+ * recorded so far as of now. There's no need to stop the stopwatch before doing this.
+ *
+ * Similar to advanced physical stopwatches' abilities to record multiple lap times
+ * Stopwatch supports recording multiple "slices" of time. See {@link Stopwatch.Slice},
+ * {@link Stopwatch#slice}, {@link Stopwatch#getPendingSlice},
+ * {@link Stopwatch#getCompletedSlices}, and {@link Stopwatch#getCompletedAndPendingSlices}.
+ * NOTE: {@link Stopwatch#stop} supports an optional parameter to simultaneously
+ *       record the current pending "slice".
+ *
+ * Use {@link Stopwatch#reset} to reset the stopwatch to its initial state.
+ * NOTE: {@link Stopwatch#start} also supports an optional parameter to force
+ *       a reset before (re)starting.
+ *
+ * See {@link Stopwatch#getState}, {@link Stopwatch#isIdle}, {@link Stopwatch#isRunning},
+ * and {@link Stopwatch#isStopped} for testing the current state of the Stopwatch.
+ *
+ * By default, Stopwatch internally uses {@link Date.now} for tracking the amount of
+ * time that has passed. This is the most compatible implementation, but has some limitations:
+ * - Maximum precision of 1ms.
+ * - Results can be thrown off if the computer's time is adjusted (manually or automatically)
+ *   during execution of the code.
+ *
+ * If your runtime environment supports a more reliable or higher precision method for
+ * obtaining system time or program execution time, then you can override this default
+ * implementation by either:
+ * - Providing a custom "system time getter" function to the Stopwatch constructor.
+ * - Or using {@link Stopwatch.setDefaultSystemTimeGetter} to ensure ALL future instances
+ *   of Stopwatch use your custom "system time getter" by default.
+ * NOTE: The unit of time/duration reported by Stopwatch is determined by the unit time
+ *       returned by the "system time getter" function.
  */
 export class Stopwatch {
     /**
