@@ -1,5 +1,5 @@
 /**
- * Records durations of time, with some inspiration from a physical stopwatch.
+ * Records durations of time, with some design inspiration from a physical stopwatch.
  *
  * To begin recording time, create a new instance of Stopwatch and call its
  * {@link Stopwatch#start} method.
@@ -8,7 +8,8 @@
  * {@link Stopwatch#start} again.
  *
  * Use {@link Stopwatch#getTime} to get the amount of time that the stopwatch has
- * recorded so far as of now. There's no need to stop the stopwatch before doing this.
+ * recorded so far (ignorign durations of time that the Stopwatch was stopped).
+ * There's no need to stop the stopwatch before doing this.
  *
  * Similar to advanced physical stopwatches' abilities to record multiple lap times
  * Stopwatch supports recording multiple "slices" of time. See {@link Stopwatch.Slice},
@@ -34,10 +35,14 @@
  * obtaining system time or program execution time, then you can override this default
  * implementation by either:
  * - Providing a custom "system time getter" function to the Stopwatch constructor.
- * - Or using {@link Stopwatch.setDefaultSystemTimeGetter} to ensure ALL future instances
+ * - Or using {@link Stopwatch.setDefaultSystemTimeGetter} to ensure that ALL future instances
  *   of Stopwatch use your custom "system time getter" by default.
  * NOTE: The unit of time/duration reported by Stopwatch is determined by the unit time
  *       returned by the "system time getter" function.
+ *
+ * Stopwatch is not limited to recording durations of system time. It can record the "duration"
+ * (change) of any numeric value that may change over time, but is guaranteed to never decrease
+ * over time.
  */
 export class Stopwatch {
     /**
