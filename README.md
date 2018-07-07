@@ -32,7 +32,7 @@ Because `ts-stopwatch` is written in TypeScript, it comes with 100% accurate Typ
 
 ## Is TypeScript required?
 
-No. The `ts-stopwatch` NPM package includes both a standard NPM module and ES6 module. The included TypeScript type definitions are just a bonus. Source maps are also included.
+No. The `ts-stopwatch` NPM package includes both a standard NPM/CommonJS module and a ES module. The included TypeScript type definitions are just a bonus. Source maps are also included.
 
 ## Installation
 
