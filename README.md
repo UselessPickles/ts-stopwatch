@@ -48,10 +48,11 @@ const stopwatch = new Stopwatch();
 stopwatch.start();
 // imagine 100 ms worth of code execution
 stopwatch.stop();
-// imagine 100 ms worth of code execution
+// imagine 100 ms worth of code execution (ignored)
 stopwatch.start();
 // imagine 100 ms worth of code execution
 stopwatch.stop();
+// imagine 100 ms worth of code execution (ignored)
 
 stopwatch.getTime();
 // returns 200
@@ -69,7 +70,11 @@ stopwatch.start();
 // imagine 100 ms worth of code execution
 stopwatch.slice();
 // imagine 50 ms worth of code execution
+stopwatch.stop();
+// imagine 100 ms worth of code execution (ignored)
 stopwatch.slice();
+// imagine 100 ms worth of code execution (ignored)
+stopwatch.start();
 // imagine 150 ms worth of code execution
 stopwatch.slice();
 
