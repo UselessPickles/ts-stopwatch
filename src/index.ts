@@ -8,7 +8,7 @@
  * {@link Stopwatch#start} again.
  *
  * Use {@link Stopwatch#getTime} to get the amount of time that the stopwatch has
- * recorded so far (ignorign durations of time that the Stopwatch was stopped).
+ * recorded so far (ignoring durations of time that the Stopwatch was stopped).
  * There's no need to stop the stopwatch before doing this.
  *
  * Similar to advanced physical stopwatches' abilities to record multiple lap times
