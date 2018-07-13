@@ -62,10 +62,9 @@
     },
     "keywords": [
         "typescript",
-        "string",
-        "number",
-        "enum",
-        "util"
+        "stopwatch",
+        "timer",
+        "timing"
     ],
     "jest": {
         "cacheDirectory": "./jest_cache",
