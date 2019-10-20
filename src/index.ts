@@ -71,6 +71,12 @@ export class Stopwatch {
     private pendingSliceStartStopwatchTime: number | undefined;
 
     /**
+     * The user provided description associated with the current pending slice.
+     * The default is empty string.     
+     */
+    private pendingSliceDescription: string = '';
+
+    /**
      * Recorded results of all completed slices since the the last reset.
      */
     private completedSlices: Stopwatch.Slice[] = [];
@@ -149,9 +155,11 @@ export class Stopwatch {
      *
      * Returns a zero-length slice if the state is currently {@link Stopwatch.State#IDLE}.
      *
+     * @param description - extra user provided detail
      * @return details about the current pending slice for this stopwatch, as of now.
      */
-    public getPendingSlice(): Stopwatch.Slice {
+    public getPendingSlice(description: string = ''): Stopwatch.Slice {
+        this.pendingSliceDescription = description;
         return this.calculatePendingSlice();
     }
 
@@ -218,9 +226,11 @@ export class Stopwatch {
      *
      * This method does not change the state of the stopwatch.
      *
+     * @param description - extra user provided detail
      * @returns the recorded slice.
      */
-    public slice(): Stopwatch.Slice {
+    public slice(description: string = ''): Stopwatch.Slice {
+        this.pendingSliceDescription = description;
         return this.recordPendingSlice();
     }
 
@@ -311,11 +321,16 @@ export class Stopwatch {
      * @return the current pending slice as of the specified stopwatch time.
      */
     private calculatePendingSlice(endStopwatchTime?: number): Stopwatch.Slice {
+        const pendingDescription = this.pendingSliceDescription;
+
         if (this.pendingSliceStartStopwatchTime === undefined) {
+            // Clear out pending description
+            this.pendingSliceDescription = '';
             return Object.freeze({
                 startTime: 0,
                 endTime: 0,
-                duration: 0
+                duration: 0,
+                description: pendingDescription
             });
         }
 
@@ -323,10 +338,14 @@ export class Stopwatch {
             endStopwatchTime = this.getTime();
         }
 
+        // Clear out pending description
+        this.pendingSliceDescription = '';
+
         return Object.freeze({
             startTime: this.pendingSliceStartStopwatchTime,
             endTime: endStopwatchTime,
-            duration: endStopwatchTime - this.pendingSliceStartStopwatchTime
+            duration: endStopwatchTime - this.pendingSliceStartStopwatchTime,
+            description: pendingDescription
         });
     }
 
@@ -349,7 +368,6 @@ export class Stopwatch {
 
             // Record the slice
             this.completedSlices.push(slice);
-
             return slice;
         } else {
             return this.calculatePendingSlice();
@@ -381,6 +399,10 @@ export namespace Stopwatch {
          * The running duration of this slice (a.k.a., "split time").
          */
         readonly duration: number;
+        /**
+         * A user-friendly description of this slice.
+         */
+        readonly description: string;
     }
 
     /**
