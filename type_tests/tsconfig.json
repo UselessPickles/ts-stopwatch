@@ -5,7 +5,7 @@
         "target": "es5",
         "module": "commonjs",
 
-        "lib": ["es6"],
+        "lib": ["es6", "dom"],
 
         "downlevelIteration": true,
 
@@ -19,6 +19,7 @@
 
         /* Module Resolution Options */
         "moduleResolution": "node",
-        "baseUrl": "./"
+        "baseUrl": "./",
+        "types": []
     }
 }

@@ -6,7 +6,7 @@
         /* Basic Options */
         "target": "es5",
         "module": "commonjs",
-        "lib": ["es6"],
+        "lib": ["es6", "dom"],
 
         /* Strict Type-Checking Options */
         "strict": true,

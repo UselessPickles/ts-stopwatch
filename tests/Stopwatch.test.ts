@@ -5,7 +5,7 @@ import { Stopwatch } from "../src";
  * Used to typecast a Slice to try mutating its properties at runtime.
  */
 type MutableSlice = {
-    -readonly [P in keyof Stopwatch.Slice]: Stopwatch.Slice[P]
+    -readonly [P in keyof Stopwatch.Slice]: Stopwatch.Slice[P];
 };
 
 describe("Stopwatch", () => {
