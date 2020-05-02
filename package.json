@@ -1,6 +1,6 @@
 {
     "name": "ts-stopwatch",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "description": "Stopwatch timer utility written in TypeScript",
     "repository": {
         "type": "git",
@@ -45,6 +45,9 @@
         "email": "jlau@uselesspickles.com",
         "url": "http://www.uselesspickles.com"
     },
+    "contributors": [
+        "Panagiotis Cheilaris <philaris@gmail.com>"
+    ],
     "license": "MIT",
     "devDependencies": {
         "@types/jest": "24.0.23",

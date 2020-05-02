@@ -90,6 +90,17 @@ export class Stopwatch {
     ) {}
 
     /**
+     * Get the system time at which the stopwatch was started.
+     * Undefined if the stopwatch is not yet started, or has been reset.
+     *
+     * @return the system time at which the stopwatch was started.
+     * Undefined if the stopwatch is not yet started, or has been reset.
+     */
+    public getStartTime(): number | undefined {
+        return this.startSystemTime
+    }
+
+    /**
      * Get the current state of this stopwatch.
      *
      * @return the current state of this stopwatch.

@@ -50,6 +50,26 @@ describe("Stopwatch", () => {
         }, 250);
     });
 
+    describe("Get start time", () => {
+        test("Stopwatch.getStartTime", () => {
+            const getTime = jest.fn();
+    
+            // Set a mock implementation as the default system time getter
+            Stopwatch.setDefaultSystemTimeGetter(getTime);
+    
+            const stopwatch = new Stopwatch();
+            getTime.mockReturnValue(1000000);
+            stopwatch.start();
+            expect(stopwatch.getStartTime()).toBe(1000000);
+            getTime.mockReturnValue(1001000);
+            stopwatch.stop();
+            expect(stopwatch.getStartTime()).toBe(1000000);
+    
+            // Reset the default system time getter back to the default (Date.now)
+            Stopwatch.setDefaultSystemTimeGetter();
+        });
+    });
+
     describe("Slices are read-only", () => {
         test("while IDLE", () => {
             const stopwatch = new Stopwatch();
