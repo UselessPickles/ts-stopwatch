@@ -50,6 +50,54 @@ describe("Stopwatch", () => {
         }, 250);
     });
 
+    describe("Get start time", () => {
+        test("Stopwatch.getStartTime", () => {
+            const getTime = jest.fn();
+
+            // Set a mock implementation as the default system time getter
+            Stopwatch.setDefaultSystemTimeGetter(getTime);
+
+            const stopwatch = new Stopwatch();
+            expect(stopwatch.getStartTime()).toBe(undefined);
+            getTime.mockReturnValue(1000000);
+            stopwatch.start();
+            expect(stopwatch.getStartTime()).toBe(1000000);
+            getTime.mockReturnValue(1001000);
+            stopwatch.stop();
+            expect(stopwatch.getStartTime()).toBe(1000000);
+            getTime.mockReturnValue(1002000);
+            stopwatch.reset();
+            expect(stopwatch.getStartTime()).toBe(undefined);
+
+            // Reset the default system time getter back to the default (Date.now)
+            Stopwatch.setDefaultSystemTimeGetter();
+        });
+    });
+
+    describe("Get stop time", () => {
+        test("Stopwatch.getStopTime", () => {
+            const getTime = jest.fn();
+
+            // Set a mock implementation as the default system time getter
+            Stopwatch.setDefaultSystemTimeGetter(getTime);
+
+            const stopwatch = new Stopwatch();
+            expect(stopwatch.getStopTime()).toBe(undefined);
+            getTime.mockReturnValue(1000000);
+            stopwatch.start();
+            expect(stopwatch.getStopTime()).toBe(undefined);
+            getTime.mockReturnValue(1001000);
+            stopwatch.stop();
+            expect(stopwatch.getStopTime()).toBe(1001000);
+            getTime.mockReturnValue(1002000);
+            stopwatch.reset();
+            expect(stopwatch.getStopTime()).toBe(undefined);
+
+            // Reset the default system time getter back to the default (Date.now)
+            Stopwatch.setDefaultSystemTimeGetter();
+        });
+    });
+
     describe("Slices are read-only", () => {
         test("while IDLE", () => {
             const stopwatch = new Stopwatch();

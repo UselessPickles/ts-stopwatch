@@ -68,6 +68,9 @@ Use `getTime()` to get the amount of time that the stopwatch has
 recorded so far (ignoring durations of time that the Stopwatch was stopped).
 There's no need to stop the stopwatch before doing this.
 
+Use `getStartTime()` to get the system time at which the stopwatch was started and
+`getStopTime()` to get the system time at which the stopwatch was stopped.
+
 Similar to advanced physical stopwatches' abilities to record multiple lap times
 Stopwatch supports recording multiple "slices" of time. See `slice()`, `getPendingSlice()`,
 `getCompletedSlices()`, and `getCompletedAndPendingSlices()`.
