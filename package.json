@@ -51,7 +51,7 @@
     "license": "MIT",
     "devDependencies": {
         "@types/jest": "25.2.1",
-        "coveralls": "3.1.0",
+        "coveralls": "3.0.7",
         "dtslint": "3.5.0",
         "jest": "25.4.0",
         "npm-run-all": "4.1.5",

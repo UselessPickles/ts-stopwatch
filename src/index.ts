@@ -97,7 +97,7 @@ export class Stopwatch {
      * Undefined if the stopwatch is not yet started, or has been reset.
      */
     public getStartTime(): number | undefined {
-        return this.startSystemTime
+        return this.startSystemTime;
     }
 
     /**
