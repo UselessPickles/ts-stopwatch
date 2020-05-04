@@ -91,6 +91,16 @@ export declare class Stopwatch {
      */
     getStartTime(): number | undefined;
     /**
+     * Get the system time at which the stopwatch was stopped.
+     * Undefined if the stopwatch is not currently stopped,
+     * is not yet started, or has been reset.
+     *
+     * @return the system time at which the stopwatch was stopped.
+     * Undefined if the stopwatch is not currently stopped,
+     * is not yet started, or has been reset.
+     */
+    getStopTime(): number | undefined;
+    /**
      * Get the current state of this stopwatch.
      *
      * @return the current state of this stopwatch.

@@ -88,6 +88,18 @@ var Stopwatch = /** @class */ (function () {
         return this.startSystemTime;
     };
     /**
+     * Get the system time at which the stopwatch was stopped.
+     * Undefined if the stopwatch is not currently stopped,
+     * is not yet started, or has been reset.
+     *
+     * @return the system time at which the stopwatch was stopped.
+     * Undefined if the stopwatch is not currently stopped,
+     * is not yet started, or has been reset.
+     */
+    Stopwatch.prototype.getStopTime = function () {
+        return this.stopSystemTime;
+    };
+    /**
      * Get the current state of this stopwatch.
      *
      * @return the current state of this stopwatch.
